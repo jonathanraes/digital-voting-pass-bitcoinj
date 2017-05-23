@@ -32,7 +32,7 @@ public class Secp256k1Context {
     private static final Logger log = LoggerFactory.getLogger(Secp256k1Context.class);
 
     static { // static initializer
-        boolean isEnabled = true;
+        boolean isEnabled = false; // Disable it for Multichain Brainpool fork
         long contextRef = -1;
         try {
             System.loadLibrary("secp256k1");
