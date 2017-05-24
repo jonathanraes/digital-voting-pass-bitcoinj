@@ -273,9 +273,9 @@ public class WalletAppKit extends AbstractIdleService {
             // Initiate Bitcoin network objects (block store, blockchain and peer group)
             vStore = provideBlockStore(chainFile);
             if (!chainFileExists || restoreFromSeed != null) {
-                if (checkpoints == null && !Utils.isAndroidRuntime()) {
-                    checkpoints = CheckpointManager.openStream(params);
-                }
+//                if (checkpoints == null && !Utils.isAndroidRuntime()) {
+//                    checkpoints = CheckpointManager.openStream(params);
+//                }
 
                 if (checkpoints != null) {
                     // Initialize the chain file with a checkpoint to speed up first-run sync.

@@ -191,7 +191,7 @@ public class CheckpointManager {
      */
     public StoredBlock getCheckpointBefore(long time) {
         try {
-            checkArgument(time > params.getGenesisBlock().getTimeSeconds());
+//            checkArgument(time > params.getGenesisBlock().getTimeSeconds());
             // This is thread safe because the map never changes after creation.
             Map.Entry<Long, StoredBlock> entry = checkpoints.floorEntry(time);
             if (entry != null) return entry.getValue();

@@ -229,6 +229,11 @@ public class BitcoinSerializer extends MessageSerializer {
             return new UTXOsMessage(params, payloadBytes);
         } else if (command.equals("getutxos")) {
             return new GetUTXOsMessage(params, payloadBytes);
+        } else if (command.equals("getaddr")) {
+            // MULTICHAIN: START
+            // The GetAddrMessage object won't actually do anything. We create it to avoid an exception shutting down connection.
+            return new GetAddrMessage(params);
+            // MULTICHAIN: END
         } else {
             log.warn("No support for deserializing message with name {}", command);
             return new UnknownMessage(params, command, payloadBytes);

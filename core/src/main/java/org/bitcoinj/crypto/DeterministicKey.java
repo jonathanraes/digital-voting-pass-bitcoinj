@@ -67,7 +67,7 @@ public class DeterministicKey extends ECKey {
                             @Nullable BigInteger priv,
                             @Nullable DeterministicKey parent) {
         super(priv, compressPoint(checkNotNull(publicAsPoint)));
-        checkArgument(chainCode.length == 32);
+//        checkArgument(chainCode.length == 32);
         this.parent = parent;
         this.childNumberPath = checkNotNull(childNumberPath);
         this.chainCode = Arrays.copyOf(chainCode, chainCode.length);
@@ -89,7 +89,7 @@ public class DeterministicKey extends ECKey {
                             BigInteger priv,
                             @Nullable DeterministicKey parent) {
         super(priv, compressPoint(ECKey.publicPointFromPrivate(priv)));
-        checkArgument(chainCode.length == 32);
+//        checkArgument(chainCode.length == 32);
         this.parent = parent;
         this.childNumberPath = checkNotNull(childNumberPath);
         this.chainCode = Arrays.copyOf(chainCode, chainCode.length);

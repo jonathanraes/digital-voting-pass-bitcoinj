@@ -21,6 +21,7 @@ import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.KeyCrypterException;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.MultiChainParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.utils.BriefLogFormatter;
@@ -32,6 +33,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import java.io.File;
+import java.net.InetAddress;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -44,6 +46,9 @@ public class ForwardingService {
     private static WalletAppKit kit;
 
     public static void main(String[] args) throws Exception {
+
+        args = new String[] { "17UGUPmLNtPRzT7DUHvWmQyLHcoKDUoH99DeEm" };
+
         // This line makes the log output more compact and easily read, especially when using the JDK log adapter.
         BriefLogFormatter.init();
         if (args.length < 1) {
@@ -52,18 +57,14 @@ public class ForwardingService {
         }
 
         // Figure out which network we should connect to. Each one gets its own set of files.
-        NetworkParameters params;
-        String filePrefix;
-        if (args.length > 1 && args[1].equals("testnet")) {
-            params = TestNet3Params.get();
-            filePrefix = "forwarding-service-testnet";
-        } else if (args.length > 1 && args[1].equals("regtest")) {
-            params = RegTestParams.get();
-            filePrefix = "forwarding-service-regtest";
-        } else {
-            params = MainNetParams.get();
-            filePrefix = "forwarding-service";
-        }
+
+        final NetworkParameters params = MultiChainParams.get(
+            "00a9b1b476c6909ac1c8b6393a8721052a435e10367aedbda4b92899ec8d6a8b",
+            "010000000000000000000000000000000000000000000000000000000000000000000000b2e938f89a844a23ca2c1a7f5c1b20f83b4c92c279f48fdc55960c4bf5020cbe19482459ffff0020750100000101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1704ffff002001040f4d756c7469436861696e20766f7465ffffffff0200000000000000002f76a9142fdf35a8cac6bb3dc4fa216303fe312b8ed40b8488ac1473706b703731000000000000ffffffff19482459750000000000000000131073706b6e0200040101000104726f6f74756a00000000"
+        );
+
+        String filePrefix = "forwarding-service21" + Math.round(Math.random()*100);
+
         // Parse the address given as the first parameter.
         forwardingAddress = Address.fromBase58(params, args[0]);
 
@@ -76,9 +77,16 @@ public class ForwardingService {
             kit.connectToLocalHost();
         }
 
+        kit.setPeerNodes(new PeerAddress(params, InetAddress.getByName("188.226.149.56")));
+
         // Download the block chain and wait until it's done.
         kit.startAsync();
         kit.awaitRunning();
+
+        Address sendToAddress = kit.wallet().currentReceiveKey().toAddress(params);
+        System.out.println("Send coins to: " + sendToAddress);
+        System.out.println("Waiting for coins to arrive. Press Ctrl-C to quit.");
+
 
         // We want to know when we receive money.
         kit.wallet().addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
@@ -111,9 +119,6 @@ public class ForwardingService {
             }
         });
 
-        Address sendToAddress = kit.wallet().currentReceiveKey().toAddress(params);
-        System.out.println("Send coins to: " + sendToAddress);
-        System.out.println("Waiting for coins to arrive. Press Ctrl-C to quit.");
 
         try {
             Thread.sleep(Long.MAX_VALUE);
