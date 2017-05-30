@@ -47,7 +47,7 @@ public class ForwardingService {
 
     public static void main(String[] args) throws Exception {
 
-        args = new String[] { "17UGUPmLNtPRzT7DUHvWmQyLHcoKDUoH99DeEm" };
+        args = new String[]{"17UGUPmLNtPRzT7DUHvWmQyLHcoKDUoH99DeEm"};
 
         // This line makes the log output more compact and easily read, especially when using the JDK log adapter.
         BriefLogFormatter.init();
@@ -59,11 +59,11 @@ public class ForwardingService {
         // Figure out which network we should connect to. Each one gets its own set of files.
 
         final NetworkParameters params = MultiChainParams.get(
-            "00a9b1b476c6909ac1c8b6393a8721052a435e10367aedbda4b92899ec8d6a8b",
-            "010000000000000000000000000000000000000000000000000000000000000000000000b2e938f89a844a23ca2c1a7f5c1b20f83b4c92c279f48fdc55960c4bf5020cbe19482459ffff0020750100000101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1704ffff002001040f4d756c7469436861696e20766f7465ffffffff0200000000000000002f76a9142fdf35a8cac6bb3dc4fa216303fe312b8ed40b8488ac1473706b703731000000000000ffffffff19482459750000000000000000131073706b6e0200040101000104726f6f74756a00000000"
+                "00a9b1b476c6909ac1c8b6393a8721052a435e10367aedbda4b92899ec8d6a8b",
+                "010000000000000000000000000000000000000000000000000000000000000000000000b2e938f89a844a23ca2c1a7f5c1b20f83b4c92c279f48fdc55960c4bf5020cbe19482459ffff0020750100000101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff1704ffff002001040f4d756c7469436861696e20766f7465ffffffff0200000000000000002f76a9142fdf35a8cac6bb3dc4fa216303fe312b8ed40b8488ac1473706b703731000000000000ffffffff19482459750000000000000000131073706b6e0200040101000104726f6f74756a00000000"
         );
 
-        String filePrefix = "forwarding-service21" + Math.round(Math.random()*100);
+        String filePrefix = "forwarding-service21" + Math.round(Math.random() * 100);
 
         // Parse the address given as the first parameter.
         forwardingAddress = Address.fromBase58(params, args[0]);
@@ -83,70 +83,12 @@ public class ForwardingService {
         kit.startAsync();
         kit.awaitRunning();
 
-        Address sendToAddress = kit.wallet().currentReceiveKey().toAddress(params);
-        System.out.println("Send coins to: " + sendToAddress);
-        System.out.println("Waiting for coins to arrive. Press Ctrl-C to quit.");
+        Wallet wallet = kit.wallet();
+        Address sendToAddress = wallet.currentReceiveKey().toAddress(params);
 
+        System.out.println("Address: " + sendToAddress + ", balance: " + wallet.getBalance());
 
-        // We want to know when we receive money.
-        kit.wallet().addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
-            @Override
-            public void onCoinsReceived(Wallet w, Transaction tx, Coin prevBalance, Coin newBalance) {
-                // Runs in the dedicated "user thread" (see bitcoinj docs for more info on this).
-                //
-                // The transaction "tx" can either be pending, or included into a block (we didn't see the broadcast).
-                Coin value = tx.getValueSentToMe(w);
-                System.out.println("Received tx for " + value.toFriendlyString() + ": " + tx);
-                System.out.println("Transaction will be forwarded after it confirms.");
-                // Wait until it's made it into the block chain (may run immediately if it's already there).
-                //
-                // For this dummy app of course, we could just forward the unconfirmed transaction. If it were
-                // to be double spent, no harm done. Wallet.allowSpendingUnconfirmedTransactions() would have to
-                // be called in onSetupCompleted() above. But we don't do that here to demonstrate the more common
-                // case of waiting for a block.
-                Futures.addCallback(tx.getConfidence().getDepthFuture(1), new FutureCallback<TransactionConfidence>() {
-                    @Override
-                    public void onSuccess(TransactionConfidence result) {
-                        forwardCoins(tx);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        // This kind of future can't fail, just rethrow in case something weird happens.
-                        throw new RuntimeException(t);
-                    }
-                });
-            }
-        });
-
-
-        try {
-            Thread.sleep(Long.MAX_VALUE);
-        } catch (InterruptedException ignored) {}
     }
 
-    private static void forwardCoins(Transaction tx) {
-        try {
-            Coin value = tx.getValueSentToMe(kit.wallet());
-            System.out.println("Forwarding " + value.toFriendlyString());
-            // Now send the coins back! Send with a small fee attached to ensure rapid confirmation.
-            final Coin amountToSend = value.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
-            final Wallet.SendResult sendResult = kit.wallet().sendCoins(kit.peerGroup(), forwardingAddress, amountToSend);
-            checkNotNull(sendResult);  // We should never try to send more coins than we have!
-            System.out.println("Sending ...");
-            // Register a callback that is invoked when the transaction has propagated across the network.
-            // This shows a second style of registering ListenableFuture callbacks, it works when you don't
-            // need access to the object the future returns.
-            sendResult.broadcastComplete.addListener(new Runnable() {
-                @Override
-                public void run() {
-                    // The wallet has changed now, it'll get auto saved shortly or when the app shuts down.
-                    System.out.println("Sent coins onwards! Transaction hash is " + sendResult.tx.getHashAsString());
-                }
-            }, MoreExecutors.sameThreadExecutor());
-        } catch (KeyCrypterException | InsufficientMoneyException e) {
-            // We don't use encrypted wallets in this example - can never happen.
-            throw new RuntimeException(e);
-        }
-    }
+
 }

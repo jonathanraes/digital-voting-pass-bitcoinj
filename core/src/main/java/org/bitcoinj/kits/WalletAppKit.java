@@ -306,6 +306,7 @@ public class WalletAppKit extends AbstractIdleService {
             }
             vChain = new BlockChain(params, vStore);
             vPeerGroup = createPeerGroup();
+            vPeerGroup.setBloomFilteringEnabled(false);
             if (this.userAgent != null)
                 vPeerGroup.setUserAgent(userAgent, version);
 
