@@ -106,7 +106,11 @@ public class SendRequest {
         Wallet wallet = new Wallet(params);
         wallet.importKeys(passportKeys);
 
-        kit.wallet().getAssetBalance(new BigInteger("0ad58733f71790dbd8ea5738f1b4840b", 16).toByteArray());
+
+        for (Asset asset : kit.wallet().getAvailableAssets()) {
+            System.out.println(asset);
+        }
+//        kit.wallet().getAssetBalance(new BigInteger("0ad58733f71790dbd8ea5738f1b4840b", 16).toByteArray());
 
 //        for (Transaction tx : kit.wallet().getTransactions(true)) {
 //            System.out.println(tx);

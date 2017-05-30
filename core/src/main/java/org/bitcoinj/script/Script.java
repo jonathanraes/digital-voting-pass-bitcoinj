@@ -239,13 +239,22 @@ public class Script {
      */
     public boolean isSentToAddress() {
         return chunks.size() == 7 &&
-               chunks.get(0).equalsOpCode(OP_DUP) &&
-               chunks.get(1).equalsOpCode(OP_HASH160) &&
-               chunks.get(2).data.length == Address.LENGTH &&
-               chunks.get(3).equalsOpCode(OP_EQUALVERIFY) &&
-               chunks.get(4).equalsOpCode(OP_CHECKSIG) &&
-               chunks.get(5).data.length == 28 &&
-               chunks.get(6).equalsOpCode(OP_DROP);
+                chunks.get(0).equalsOpCode(OP_DUP) &&
+                chunks.get(1).equalsOpCode(OP_HASH160) &&
+                chunks.get(2).data.length == Address.LENGTH &&
+                chunks.get(3).equalsOpCode(OP_EQUALVERIFY) &&
+                chunks.get(4).equalsOpCode(OP_CHECKSIG) &&
+                chunks.get(5).data.length == 28 &&
+                chunks.get(6).equalsOpCode(OP_DROP);
+    }
+
+    /**
+     * Returns true if the script only contains multichain metadata.
+     */
+    public boolean isMetadata() {
+        return chunks.size() == 3 &&
+                chunks.get(1).equalsOpCode(OP_DROP) &&
+                chunks.get(2).equalsOpCode(OP_RETURN);
     }
 
     /**

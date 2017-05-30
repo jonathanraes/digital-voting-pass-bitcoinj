@@ -58,6 +58,7 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VarInt;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.*;
+import org.bitcoinj.core.Asset;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.script.*;
 import org.bitcoinj.signers.*;
@@ -2869,7 +2870,7 @@ public class Wallet extends BaseTaggableObject
         transactions.put(tx.getHash(), tx);
         switch (pool) {
         case UNSPENT:
-            checkState(unspent.put(tx.getHash(), tx) == null);
+            unspent.put(tx.getHash(), tx);
             break;
         case SPENT:
             checkState(spent.put(tx.getHash(), tx) == null);
@@ -3492,9 +3493,9 @@ public class Wallet extends BaseTaggableObject
     }
 
     public void getAssetBalance(byte[] assetFilter) {
-        for (Transaction tx : unspent.values()) {
+        for (Transaction tx : transactions.values()) {
             for (TransactionOutput txo : tx.getOutputs()) {
-                if (txo.getScriptPubKey().isSentToAddress()) {
+                if (txo.getScriptPubKey().isSentToAddress() && txo.isAvailableForSpending()) {
                     byte[] metaData = txo.getScriptPubKey().getChunks().get(5).data;
                     byte[] identifier = Arrays.copyOfRange(metaData, 0, 4);
                     if (Arrays.equals(identifier, new BigInteger("73706b71", 16).toByteArray())) {
@@ -3506,6 +3507,26 @@ public class Wallet extends BaseTaggableObject
                 }
             }
         }
+    }
+
+    public ArrayList<Asset> getAvailableAssets() {
+        ArrayList<Asset> assets = new ArrayList<Asset>();
+        for (Transaction tx : transactions.values()) {
+            for (TransactionOutput txo : tx.getOutputs()) {
+                if (txo.getScriptPubKey().isMetadata()) {
+                    byte[] metaData = txo.getScriptPubKey().getChunks().get(0).data;
+                    byte[] identifier = Arrays.copyOfRange(metaData, 0, 4);
+                    if (Arrays.equals(identifier, new BigInteger("73706b6e", 16).toByteArray())) {
+                        String assetName = new String(metaData);
+                        assetName = assetName.split(new String(new byte[] {0x00, 0x01}))[1];
+                        int nameLength = new Byte((byte)assetName.charAt(0)).intValue();
+                        assetName = assetName.substring(1, nameLength);
+                        assets.add(new Asset(assetName, tx.getHash()));
+                    }
+                }
+            }
+        }
+        return assets;
     }
 
     /**
