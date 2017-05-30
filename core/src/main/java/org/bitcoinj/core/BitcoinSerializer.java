@@ -89,7 +89,7 @@ public class BitcoinSerializer extends MessageSerializer {
      */
     @Override
     public void serialize(String name, byte[] message, OutputStream out) throws IOException {
-        byte[] header = new byte[4 + COMMAND_LEN + 4 + 4 /* checksum */];
+        byte[] header = new byte[4 + COMMAND_LEN + 4 + 4 /* addressChecksum */];
         uint32ToByteArrayBE(params.getPacketMagic(), header, 0);
 
         // The header array is initialized to zero by Java so we don't have to worry about
@@ -132,10 +132,10 @@ public class BitcoinSerializer extends MessageSerializer {
         //                          0xf9beb4d9 for production
         //   - 12 byte command in ASCII
         //   - 4 byte payload size
-        //   - 4 byte checksum
+        //   - 4 byte addressChecksum
         //   - Payload data
         //
-        // The checksum is the first 4 bytes of a SHA256 hash of the message payload. It isn't
+        // The addressChecksum is the first 4 bytes of a SHA256 hash of the message payload. It isn't
         // present for all messages, notably, the first one on a connection.
         //
         // Bitcoin Core ignores garbage before the magic header bytes. We have to do the same because
@@ -164,7 +164,7 @@ public class BitcoinSerializer extends MessageSerializer {
         byte[] payloadBytes = new byte[header.size];
         in.get(payloadBytes, 0, header.size);
 
-        // Verify the checksum.
+        // Verify the addressChecksum.
         byte[] hash;
         hash = Sha256Hash.hashTwice(payloadBytes);
         if (header.checksum[0] != hash[0] || header.checksum[1] != hash[1] ||
@@ -375,9 +375,9 @@ public class BitcoinSerializer extends MessageSerializer {
             if (size > Message.MAX_SIZE || size < 0)
                 throw new ProtocolException("Message size too large: " + size);
 
-            // Old clients don't send the checksum.
+            // Old clients don't send the addressChecksum.
             checksum = new byte[4];
-            // Note that the size read above includes the checksum bytes.
+            // Note that the size read above includes the addressChecksum bytes.
             System.arraycopy(header, cursor, checksum, 0, 4);
             cursor += 4;
         }

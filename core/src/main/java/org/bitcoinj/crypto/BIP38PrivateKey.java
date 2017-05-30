@@ -59,7 +59,7 @@ public class BIP38PrivateKey extends VersionedChecksummedBytes {
      * @param base58
      *            The textual form of the password-protected private key.
      * @throws AddressFormatException
-     *             if the given base58 doesn't parse or the checksum is invalid
+     *             if the given base58 doesn't parse or the addressChecksum is invalid
      */
     public static BIP38PrivateKey fromBase58(NetworkParameters params, String base58) throws AddressFormatException {
         return new BIP38PrivateKey(params, base58);

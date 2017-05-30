@@ -137,7 +137,7 @@ public class TransactionOutput extends ChildMessage {
 
     /**
      * <p>If the output script pays to a redeem script, return the address of the redeem script as described by,
-     * i.e., a base58 encoding of [one-byte version][20-byte hash][4-byte checksum], where the 20-byte hash refers to
+     * i.e., a base58 encoding of [one-byte version][20-byte hash][4-byte addressChecksum], where the 20-byte hash refers to
      * the redeem script.</p>
      *
      * <p>P2SH is described by <a href="https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki">BIP 16</a> and

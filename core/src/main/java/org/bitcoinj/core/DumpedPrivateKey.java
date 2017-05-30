@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 
 /**
  * Parses and generates private keys in the form used by the Bitcoin "dumpprivkey" command. This is the private key
- * bytes with a header byte and 4 checksum bytes at the end. If there are 33 private key bytes instead of 32, then
+ * bytes with a header byte and 4 addressChecksum bytes at the end. If there are 33 private key bytes instead of 32, then
  * the last byte is a discriminator value for the compressed pubkey.
  */
 public class DumpedPrivateKey extends VersionedChecksummedBytes {
@@ -39,7 +39,7 @@ public class DumpedPrivateKey extends VersionedChecksummedBytes {
      * @param base58
      *            The textual form of the private key.
      * @throws AddressFormatException
-     *             if the given base58 doesn't parse or the checksum is invalid
+     *             if the given base58 doesn't parse or the addressChecksum is invalid
      * @throws WrongNetworkException
      *             if the given private key is valid but for a different chain (eg testnet vs mainnet)
      */

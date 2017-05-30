@@ -19,6 +19,7 @@ package org.bitcoinj.core;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import com.google.common.base.Objects;
@@ -28,41 +29,70 @@ import com.google.common.primitives.UnsignedBytes;
 /**
  * <p>In Bitcoin the following format is often used to represent some type of key:</p>
  * <p/>
- * <pre>[one version byte] [data bytes] [4 checksum bytes]</pre>
+ * <pre>[one version byte] [data bytes] [4 addressChecksum bytes]</pre>
  * <p/>
  * <p>and the result is then Base58 encoded. This format is used for addresses, and private keys exported using the
  * dumpprivkey command.</p>
  */
 public class VersionedChecksummedBytes implements Serializable, Cloneable, Comparable<VersionedChecksummedBytes> {
     protected final int version;
+    protected final int addressChecksum;
     protected byte[] bytes;
 
     protected VersionedChecksummedBytes(String encoded) throws AddressFormatException {
         byte[] versionAndDataBytes = Base58.decodeChecked(encoded);
-        byte versionByte = versionAndDataBytes[0];
-        version = versionByte & 0xFF;
+        if (versionAndDataBytes.length == 20) {
+            version = java.nio.ByteBuffer.wrap(new byte[]{versionAndDataBytes[0]}).getInt();;
+        } else if (versionAndDataBytes.length == 23) {
+            version = java.nio.ByteBuffer.wrap(new byte[]{
+                    versionAndDataBytes[0],
+                    versionAndDataBytes[6],
+                    versionAndDataBytes[12],
+                    versionAndDataBytes[18]
+            }).getInt();
+        } else {
+            version = 0;
+        }
         bytes = new byte[versionAndDataBytes.length - 1];
         System.arraycopy(versionAndDataBytes, 1, bytes, 0, versionAndDataBytes.length - 1);
+        this.addressChecksum = 0; // @todo fix
     }
 
     protected VersionedChecksummedBytes(int version, byte[] bytes) {
-        checkArgument(version >= 0 && version < 256);
+        checkArgument(version >= 0 && version < Integer.MAX_VALUE);
         this.version = version;
+        this.addressChecksum = 0;
+        this.bytes = bytes;
+    }
+
+    protected VersionedChecksummedBytes(int version, int addressChecksum, byte[] bytes) {
+        checkArgument(version >= 0 && version < Integer.MAX_VALUE);
+        this.version = version;
+        this.addressChecksum = addressChecksum;
         this.bytes = bytes;
     }
 
     /**
      * Returns the base-58 encoded String representation of this
-     * object, including version and checksum bytes.
+     * object, including version and addressChecksum bytes.
      */
     public final String toBase58() {
         // A stringified buffer is:
         //   1 byte version + data bytes + 4 bytes check code (a truncated hash)
-        byte[] addressBytes = new byte[1 + bytes.length + 4];
-        addressBytes[0] = (byte) version;
-        System.arraycopy(bytes, 0, addressBytes, 1, bytes.length);
-        byte[] checksum = Sha256Hash.hashTwice(addressBytes, 0, bytes.length + 1);
-        System.arraycopy(checksum, 0, addressBytes, bytes.length + 1, 4);
+        byte[] versionBytes = BigInteger.valueOf(this.version).toByteArray();
+        if (this.version < 256) versionBytes = new byte[] {versionBytes[3]};
+        byte[] addressBytes = new byte[versionBytes.length + bytes.length + 4];
+        for (int i = 0; i < versionBytes.length; i++) {
+            addressBytes[i*((bytes.length/4)+1)] = versionBytes[i];
+            System.arraycopy(bytes, i*5, addressBytes, ((bytes.length/4)+1)*i+1, (bytes.length/4));
+        }
+
+        byte[] checksum = Sha256Hash.hashTwice(addressBytes, 0, bytes.length + 4);
+        byte[] addressChecksum = BigInteger.valueOf(this.addressChecksum).toByteArray();
+        for (int i = 0; i < 4; i++) {
+            checksum[i] = (byte) (checksum[i] ^ addressChecksum[i]);
+        }
+        System.arraycopy(checksum, 0, addressBytes, bytes.length + 4, 4);
         return Base58.encode(addressBytes);
     }
 

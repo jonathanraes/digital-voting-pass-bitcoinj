@@ -36,7 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * which are about network (TCP) addresses.</p>
  *
  * <p>A standard address is built by taking the RIPE-MD160 hash of the public key bytes, with a version prefix and a
- * checksum suffix, then encoding it textually as base58. The version prefix is used to both denote the network for
+ * addressChecksum suffix, then encoding it textually as base58. The version prefix is used to both denote the network for
  * which the address is valid (see {@link NetworkParameters}, and also to indicate how the bytes inside the address
  * should be interpreted. Whilst almost all addresses today are hashes of public keys, another (currently unsupported
  * type) can contain a hash of a script instead.</p>
@@ -85,7 +85,7 @@ public class Address extends VersionedChecksummedBytes {
      * @param base58
      *            The textual form of the address, such as "17kzeh4N8g49GFvdDzSf8PjaPfyoD1MndL".
      * @throws AddressFormatException
-     *             if the given base58 doesn't parse or the checksum is invalid
+     *             if the given base58 doesn't parse or the addressChecksum is invalid
      * @throws WrongNetworkException
      *             if the given address is valid but for a different chain (eg testnet vs mainnet)
      */
@@ -99,7 +99,7 @@ public class Address extends VersionedChecksummedBytes {
      * <pre>new Address(MainNetParams.get(), Hex.decode("4a22c3c4cbb31e4d03b15550636762bda0baf85a"));</pre>
      */
     public Address(NetworkParameters params, byte[] hash160) {
-        super(params.getAddressHeader(), hash160);
+        super(params.getAddressHeader(), params.getAddressChecksum(), hash160);
         checkArgument(hash160.length == 20, "Addresses are 160-bit hashes, so you must provide 20 bytes");
         this.params = params;
     }

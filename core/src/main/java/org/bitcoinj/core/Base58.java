@@ -55,7 +55,7 @@ public class Base58 {
     }
 
     /**
-     * Encodes the given bytes as a base58 string (no checksum is appended).
+     * Encodes the given bytes as a base58 string (no addressChecksum is appended).
      *
      * @param input the bytes to encode
      * @return the base58-encoded string
@@ -138,12 +138,12 @@ public class Base58 {
     }
 
     /**
-     * Decodes the given base58 string into the original data bytes, using the checksum in the
-     * last 4 bytes of the decoded data to verify that the rest are correct. The checksum is
+     * Decodes the given base58 string into the original data bytes, using the addressChecksum in the
+     * last 4 bytes of the decoded data to verify that the rest are correct. The addressChecksum is
      * removed from the returned data.
      *
-     * @param input the base58-encoded string to decode (which should include the checksum)
-     * @throws AddressFormatException if the input is not base 58 or the checksum does not validate.
+     * @param input the base58-encoded string to decode (which should include the addressChecksum)
+     * @throws AddressFormatException if the input is not base 58 or the addressChecksum does not validate.
      */
     public static byte[] decodeChecked(String input) throws AddressFormatException {
         byte[] decoded  = decode(input);
@@ -152,7 +152,7 @@ public class Base58 {
         byte[] data = Arrays.copyOfRange(decoded, 0, decoded.length - 4);
         byte[] checksum = Arrays.copyOfRange(decoded, decoded.length - 4, decoded.length);
         byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(data), 0, 4);
-//        if (!Arrays.equals(checksum, actualChecksum))
+//        if (!Arrays.equals(addressChecksum, actualChecksum))
 //            throw new AddressFormatException("Checksum does not validate");
         return data;
     }

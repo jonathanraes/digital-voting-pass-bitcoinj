@@ -28,6 +28,8 @@ public class MultiChainParams extends MainNetParams {
         httpSeeds = new HttpDiscovery.Details[] {};
         addrSeeds = new int[] {};
         checkpoints = new HashMap<>();
+        addressHeader = Integer.parseInt("00edd263", 16);
+        addressChecksum = Integer.parseInt("1b530478", 16);
 
         // Create a copy of the Multichain network's genesis block and over-write the BitcoinJ created genesis block.
         byte[] payload = Utils.HEX.decode(rawHex);
