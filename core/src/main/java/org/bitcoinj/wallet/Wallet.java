@@ -59,6 +59,7 @@ import org.bitcoinj.core.VarInt;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.TransactionConfidence.*;
 import org.bitcoinj.core.Asset;
+import org.bitcoinj.core.AssetBalance;
 import org.bitcoinj.crypto.*;
 import org.bitcoinj.script.*;
 import org.bitcoinj.signers.*;
@@ -3492,21 +3493,48 @@ public class Wallet extends BaseTaggableObject
         return getBalance(BalanceType.AVAILABLE);
     }
 
-    public void getAssetBalance(byte[] assetFilter) {
+    /**
+     * Sum all unsepent outputs for the given Address and Asset
+     *
+     * @param assetFilter
+     * @param address
+     * @return
+     */
+    public AssetBalance getAssetBalance(Asset assetFilter, Address address) {
+        AssetBalance balance = new AssetBalance(assetFilter, address);
+
+        // Iterate over all known transactions
         for (Transaction tx : transactions.values()) {
+
+            // Get outputs of these transactions
             for (TransactionOutput txo : tx.getOutputs()) {
+
+                // Filter unspent
                 if (txo.getScriptPubKey().isSentToAddress() && txo.isAvailableForSpending()) {
+
                     byte[] metaData = txo.getScriptPubKey().getChunks().get(5).data;
                     byte[] identifier = Arrays.copyOfRange(metaData, 0, 4);
+
+                    // Check metadata if this output is an asset
                     if (Arrays.equals(identifier, new BigInteger("73706b71", 16).toByteArray())) {
                         byte[] asset = Arrays.copyOfRange(metaData, 4, 20);
-                        byte[] quantity = Arrays.copyOfRange(metaData, 20, 28);
-                        int x = java.nio.ByteBuffer.wrap(quantity).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
-                        System.out.println(x + "->" + txo.getScriptPubKey().getToAddress(params));
+
+                        // Check if this asset is sent to the address we are looking for
+                        if (Arrays.equals(asset, assetFilter.getId()) && address.equals(txo.getScriptPubKey().getToAddress(params))) {
+
+                            // Parse amount
+                            byte[] quantity = Arrays.copyOfRange(metaData, 20, 28);
+                            int x = java.nio.ByteBuffer.wrap(quantity).order(java.nio.ByteOrder.LITTLE_ENDIAN).getInt();
+                            balance.addAmount(x);
+
+                            // Add txo to balance
+                            balance.addTxo(txo);
+                        }
                     }
                 }
             }
         }
+        return balance;
     }
 
     public ArrayList<Asset> getAvailableAssets() {
@@ -3520,7 +3548,7 @@ public class Wallet extends BaseTaggableObject
                         String assetName = new String(metaData);
                         assetName = assetName.split(new String(new byte[] {0x00, 0x01}))[1];
                         int nameLength = new Byte((byte)assetName.charAt(0)).intValue();
-                        assetName = assetName.substring(1, nameLength);
+                        assetName = assetName.substring(1, nameLength+1);
                         assets.add(new Asset(assetName, tx.getHash()));
                     }
                 }

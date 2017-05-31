@@ -107,7 +107,7 @@ public class Address extends VersionedChecksummedBytes {
     /** @deprecated Use {@link #fromBase58(NetworkParameters, String)} */
     @Deprecated
     public Address(@Nullable NetworkParameters params, String address) throws AddressFormatException {
-        super(address);
+        super(address, params.getAddressChecksum());
         if (params != null) {
             if (!isAcceptableVersion(params, version)) {
                 throw new WrongNetworkException(version, params.getAcceptableAddressCodes());

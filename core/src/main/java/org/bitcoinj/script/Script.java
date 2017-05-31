@@ -480,7 +480,7 @@ public class Script {
         } else if (isSentToMultiSig()) {
             sigsPrefixCount = 1; // OP_0 <sig>*
         } else if (isSentToAddress()) {
-            sigsSuffixCount = 1; // <sig> <pubkey>
+            sigsSuffixCount = 0; // <sig> <pubkey>
         }
         return ScriptBuilder.updateScriptWithSignature(scriptSig, sigBytes, index, sigsPrefixCount, sigsSuffixCount);
     }

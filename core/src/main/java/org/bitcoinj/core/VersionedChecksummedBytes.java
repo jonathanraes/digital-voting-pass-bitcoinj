@@ -36,26 +36,42 @@ import com.google.common.primitives.UnsignedBytes;
  */
 public class VersionedChecksummedBytes implements Serializable, Cloneable, Comparable<VersionedChecksummedBytes> {
     protected final int version;
-    protected final int addressChecksum;
+    protected int addressChecksum;
     protected byte[] bytes;
 
     protected VersionedChecksummedBytes(String encoded) throws AddressFormatException {
         byte[] versionAndDataBytes = Base58.decodeChecked(encoded);
         if (versionAndDataBytes.length == 20) {
-            version = java.nio.ByteBuffer.wrap(new byte[]{versionAndDataBytes[0]}).getInt();;
-        } else if (versionAndDataBytes.length == 23) {
+            version = java.nio.ByteBuffer.wrap(new byte[]{versionAndDataBytes[0]}).getInt();
+            bytes = new byte[versionAndDataBytes.length - 1];
+            System.arraycopy(versionAndDataBytes, 1, bytes, 0, versionAndDataBytes.length - 1);
+        } else if (versionAndDataBytes.length == 24) {
             version = java.nio.ByteBuffer.wrap(new byte[]{
                     versionAndDataBytes[0],
                     versionAndDataBytes[6],
                     versionAndDataBytes[12],
                     versionAndDataBytes[18]
             }).getInt();
+            bytes = new byte[versionAndDataBytes.length - 4];
+            System.arraycopy(versionAndDataBytes, 1, bytes, 0, 5);
+            System.arraycopy(versionAndDataBytes, 7, bytes, 5, 5);
+            System.arraycopy(versionAndDataBytes, 13, bytes, 10, 5);
+            System.arraycopy(versionAndDataBytes, 19, bytes, 15, 5);
         } else {
             version = 0;
         }
-        bytes = new byte[versionAndDataBytes.length - 1];
-        System.arraycopy(versionAndDataBytes, 1, bytes, 0, versionAndDataBytes.length - 1);
-        this.addressChecksum = 0; // @todo fix
+
+        this.addressChecksum = 0;
+    }
+
+    /**
+     * Call constructor and set addressChecksum from NetworkParameters
+     * @param encoded
+     * @param addressChecksum
+     */
+    protected VersionedChecksummedBytes(String encoded, int addressChecksum) {
+        this(encoded);
+        this.addressChecksum = addressChecksum;
     }
 
     protected VersionedChecksummedBytes(int version, byte[] bytes) {

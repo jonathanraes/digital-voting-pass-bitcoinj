@@ -49,12 +49,12 @@ public class Asset {
         return this.name;
     }
 
-    public String getId() {
-        return Utils.HEX.encode(this.id);
+    public byte[] getId() {
+        return this.id;
     }
 
     public String toString() {
-        return this.getId() + ": " + this.getName();
+        return Utils.HEX.encode(this.id) + ": " + this.getName();
     }
 
 }
