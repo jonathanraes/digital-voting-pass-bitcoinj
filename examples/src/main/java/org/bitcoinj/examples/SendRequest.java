@@ -16,14 +16,10 @@
 
 package org.bitcoinj.examples;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import org.bitcoinj.core.*;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.MultiChainParams;
 import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.signers.LocalTransactionSigner;
 import org.bitcoinj.signers.TransactionSigner;
@@ -31,16 +27,11 @@ import org.bitcoinj.utils.BriefLogFormatter;
 import org.bitcoinj.wallet.KeyBag;
 import org.bitcoinj.wallet.RedeemData;
 import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.Wallet.BalanceType;
-import org.bitcoinj.core.ECKey;
-import org.spongycastle.util.encoders.Hex;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Base64;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -91,7 +82,7 @@ public class SendRequest {
         kit.startAsync();
         kit.awaitRunning();
 
-        ECKey passportKey = ECKey.fromPrivate(new BigInteger("19d8d4c341564e5acc3cb0dd6bb58bb65169d8ec4672dd039d039501b51a2bc422a053af847b7ff3", 16));
+        final ECKey passportKey = ECKey.fromPrivate(new BigInteger("19d8d4c341564e5acc3cb0dd6bb58bb65169d8ec4672dd039d039501b51a2bc422a053af847b7ff3", 16));
         Address from = Address.fromBase58(params, "13KuMB2ToFLiP1gZwhRwA8nHQFqKjAZKT1QpUh");
         Address to   = Address.fromBase58(params, "1BNgsh93GLtqbNaN78yU5BnXwnonhkGrvwzMjZ");
 
